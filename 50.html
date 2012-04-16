@@ -11,11 +11,13 @@ function rndint(a,b) {return Math.floor(rnd(a,b));}
 function floor(v) {return Math.floor(v);}
 function abs(v) {return Math.abs(v);}
 
+var stage=0;
 var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
 var plX=10;
 var plY=floor(sizeY/2);
 var fire=0;
+var lives=5;
 
 function nextmap(i) {
 	var v1=mp1[i] + rndint(-2,3);
@@ -92,6 +94,8 @@ function player() {
 			fire = 10;
 		}
 	}
+	if (kbd[27])
+		stage=0;
 }
 function updmap() {
 	mp1=mp1.slice(1);
@@ -99,7 +103,6 @@ function updmap() {
 	nextmap(sizeX-2);
 }
 function draw() {
-    a.clearRect(0,0,ww,hh);
 	a[fs] = '#eee';
 	for (var i=0;i<sizeX;++i) {
 		a.fillRect(i*step,0,step,mp1[i]*step);
@@ -109,16 +112,33 @@ function draw() {
 	a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
 }
 
+function text(s,x,y,col) {
+	a[fs] = col;
+	a.font='16px Arial';
+	a.textBaseline = 'top';
+	a.fillText (s,x,y);
+}
+
 spawn();
 
-setInterval(function(){
-	updmap();
-	player();
-	draw();
-	enemies.forEach(function(e){e.update();});
-	enemies = enemies.filter(function(e){return !e.dead;});
-	bullets.forEach(function(e){e.update();});
-	bullets = bullets.filter(function(e){return !e.dead;});
-},1000/fps);
+function gametick() {
+    a.clearRect(0,0,ww,hh);
+	if (stage==0) {
+		text ("Arrow keys & Space. Press Space now.",50,50,'#fff');
+		if (kbd[32])
+			stage = 1;
+	} else if (stage==1) {
+		updmap();
+		player();
+		draw();
+		enemies.forEach(function(e){e.update();});
+		enemies = enemies.filter(function(e){return !e.dead;});
+		bullets.forEach(function(e){e.update();});
+		bullets = bullets.filter(function(e){return !e.dead;});
+		text("Lives: " + lives, 5, 5, "#080");
+	}
+}
+
+setInterval(function(){gametick();},1000/fps);
 </script>
 </body></html>
