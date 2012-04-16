@@ -1,4 +1,5 @@
-<html><body><canvas id="c" width="600" height="300"></canvas>
+<html><head><title>sideshooter50</title></head><body>
+<canvas id="c" width="600" height="300"></canvas>
 <script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
 var a = c.getContext('2d'); c.style.backgroundColor = '#444'; fs = 'fillStyle';
 a.font='16px Arial'; a.textBaseline = 'top';
@@ -46,5 +47,4 @@ function gt() { a.clearRect(0,0,ww,hh); if (sg!=1) { if (kbd[32]) {
   blt.forEach(function(e){e.u();}); blt=blt.filter(function(e){return !e.d;});
   text("Lives: "+lv+" Score "+flr(sr),5,5,"#080"); } }
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
-setInterval(function(){gt();},1000/30);
-</script></body></html>
+setInterval(function(){gt();},1000/30);</script></body></html>
