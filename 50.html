@@ -6,13 +6,15 @@ fps = 30;
 fs = 'fillStyle';
 
 function clamp(v,a,b) {return Math.max(Math.min(v,b),a);}
-function rndint(a,b) {return Math.floor(Math.random()*(b-a)+a);}
+function rnd(a,b) {return Math.random()*(b-a)+a;}
+function rndint(a,b) {return Math.floor(rnd(a,b));}
 function floor(v) {return Math.floor(v);}
 
 var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
 var plX=10;
 var plY=floor(sizeY/2);
+var fire=0;
 
 function nextmap(i) {
 	var v1=mp1[i] + rndint(-2,3);
@@ -32,12 +34,27 @@ var kbd = [];
 
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
 
-function Enemy(x,y) {
+function Bullet(x,y) {
 	var me=this; me.x=x;me.y=y;
 	me.update=function() {
-		--me.x;
-		if (me.x < 10)
-			me.dead=true;
+		me.x+=2;
+		if (me.x > sizeX || coll(me.x,me.y)) me.dead=true;
+		if (me.dead) return;
+		a[fs] = '#080';
+		a.fillRect(me.x*step-3,me.y*step+1,step+6,step-2);
+	}
+}
+
+function coll(x,y) {
+	x=clamp(floor(x),0,sizeX-1);
+	return mp1[x] >= y || mp2[x]-1 <= y;
+}
+
+function Enemy(x,y) {
+	var me=this; me.x=x;me.y=y;me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1);
+	me.update=function() {
+		me.x+=me.dx;me.y+=me.dy;
+		if (me.x < 0 || coll(me.x,me.y)) me.dead=true;
 		a[fs] = '#e00';
 		a.fillRect(me.x*step,me.y*step,step,step);
 	}
@@ -48,12 +65,20 @@ function spawn() {
 	enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
 	setTimeout(function(){spawn();}, rndint(500,1000));
 }
+var bullets = [];
 
 
 function player() {
 	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
 	plX = clamp(plX,1,sizeX-2);
 	plY = clamp(plY,1,sizeY-2);
+	fire = clamp(fire-1,0,1000);
+	if (kbd[32]) {
+		if (fire<=0) {
+			bullets.push(new Bullet(plX,plY));
+			fire = 10;
+		}
+	}
 }
 function updmap() {
 	mp1=mp1.slice(1);
@@ -79,6 +104,8 @@ setInterval(function(){
 	draw();
 	enemies.forEach(function(e){e.update();});
 	enemies = enemies.filter(function(e){return !e.dead;});
+	bullets.forEach(function(e){e.update();});
+	bullets = bullets.filter(function(e){return !e.dead;});
 },1000/fps);
 </script>
 </body></html>
