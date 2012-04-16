@@ -1,0 +1,50 @@
+<html><head><title>sideshooter50</title></head><body>
+<canvas id="c" width="600" height="300"></canvas>
+<script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
+var a = c.getContext('2d'); c.style.backgroundColor = '#444'; fs = 'fillStyle';
+a.font='16px Arial'; a.textBaseline = 'top';
+function clm(v,a,b) {return Math.max(Math.min(v,b),a);}
+function flr(v) {return Math.floor(v);} function abs(v) {return Math.abs(v);}
+function rnd(a,b) {return Math.random()*(b-a)+a;}
+function rndi(a,b) {return flr(rnd(a,b));}
+var ww=600, hh=300, st=5; var sX=ww/st, sY=hh/st;
+var sg=0,kbd=[],enm=[],blt=[]; var m1,m2,plX,plY,fr,die,ns,lv,sr,sp,gap;
+function nmp(i) {
+ var v1=m1[i]+rndi(-2,3); var v2=m2[i]+rndi(-2,3);
+ while (v2-v1>gap*2) {--v2;++v1;} while (v2-v1<gap) {++v2;--v1;}
+ v1=clm(v1,1,flr(sY/2));v2=clm(v2,flr(sY/2),sY-1); ++i;m1[i]=v1; m2[i]=v2; }
+function coll(x,y) {x=clm(flr(x),0,sX-1);return m1[x]>=y||m2[x]-1<=y;}
+function Bu(x,y) { var t=this; t.x=x; t.y=y; t.u=function() {
+ t.x+=2; if (t.x>sX||coll(t.x,t.y)) t.d=true; if (t.d) return;
+ a[fs] = '#080'; a.fillRect(t.x*st-3,t.y*st+1,st+6,st-2); }}
+function cbu(x,y) { return blt.some(function(e){ if (abs(x-e.x)<2.5&&abs(y-e.y)
+ <2.5) {e.d=true;sr+=10;return true;} return false;});}
+function cen(x,y) {
+ return enm.some(function(e){return abs(x-e.x)<=1.5&&abs(y-e.y)<=1.5;});}
+function En(x,y) {var t=this;t.x=x;t.y=y;t.dx=rnd(-1.2,-0.8);t.dy=rnd(-0.1,0.1);
+ t.u=function() { t.x+=t.dx;t.y+=t.dy; if (t.x<0||coll(t.x,t.y)||cbu(t.x,t.y))
+  t.d=true;
+ a[fs]='#e00'; a.fillRect(t.x*st,t.y*st,st,st); } }
+function plr(){if(die>0){--die;if(die==0){plX=10;plY=flr((m1[plX]+m2[plX])/2);}
+ return;}if(kbd[37])plX-=1.2;if(kbd[39])plX+=1.2;if(kbd[38])--plY;if(kbd[40])
+ ++plY;plX=clm(plX,1,sX-2);plY=clm(plY,1,sY-2);fr=clm(fr-1,0,1000);if(kbd[32]&&
+ fr<=0){blt.push(new Bu(plX,plY));fr=10;}if(coll(plX,plY)||cen(plX,plY)){die=30;
+ --lv;if(lv==0)sg=2;} if (kbd[27]) sg=0; }
+function dw() { a[fs] = '#eee'; for (var i=0;i<sX;++i) {
+ a.fillRect(i*st,0,st,m1[i]*st);a.fillRect(i*st,m2[i]*st,st,hh); }
+ if (die>0) {a[fs]='#f80'; for (var i=0;i<10;++i)
+  a.fillRect(plX*st+rndi(-20,20),plY*st+rndi(-20,20),3,3);
+ } else { a[fs]='#0c0';a.fillRect(plX*st-2,plY*st-2,st+4,st+4); } }
+function text(s,x,y,col) { a[fs]=col; a.fillText (s,x,y); }
+function gt() { a.clearRect(0,0,ww,hh); if (sg!=1) { if (kbd[32]) {
+  m1=[];m2=[];m1[0]=flr(sY/5);m2[0]=flr(sY*4/5);for(var i=0;i<sX-1;++i)nmp(i);
+  enm=[];blt=[];plX=10;plY=flr((m1[plX]+m2[plX])/2);fr=2;die=0;ns=10;lv=3;sr=0;
+  sp=100;gap=30;sg=1;} text(sg==0?"Arrow keys & Space":("Dead! Score "+flr(sr)),
+  50,50,'#fff');}else{sr+=.1;m1=m1.slice(1);m2=m2.slice(1);nmp(sX-2);plr();dw();
+  enm.forEach(function(e){e.u();}); enm=enm.filter(function(e){return !e.d;});
+  ns=clm(ns-1,0,1000);sp=clm(sp-0.1,10,1000);gap=clm(gap-0.01,4,100); if(ns<=0)
+   {enm.push(new En(sX,flr((m1[sX-1]+m2[sX-1])/2)));ns=rndi(sp*0.5,sp*1.5);}
+  blt.forEach(function(e){e.u();}); blt=blt.filter(function(e){return !e.d;});
+  text("Lives: "+lv+" Score "+flr(sr),5,5,"#080"); } }
+document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
+setInterval(function(){gt();},1000/30);</script></body></html>
