@@ -16,8 +16,10 @@ var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
 var plX, plY;
 var fire=0;
+var dying=0;
 var nextspawn=10;
-var lives=5;
+var lives=3;
+var score=0;
 
 function nextmap(i) {
 	var v1=mp1[i] + rndint(-2,3);
@@ -25,8 +27,7 @@ function nextmap(i) {
 	while (v2-v1 < 12) { ++v2; --v1; }
 	v1=clamp(v1,1,floor(sizeY/2));
 	v2=clamp(v2,floor(sizeY/2),sizeY-1);
-	mp1[i+1] = v1;
-	mp2[i+1] = v2;
+	++i; mp1[i] = v1; mp2[i] = v2;
 }
 
 var kbd = [];
@@ -75,6 +76,13 @@ function Enemy(x,y) {
 
 
 function player() {
+	if (dying > 0) {
+		--dying;
+		if (dying == 0) {
+			plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
+		}
+		return;
+	}
 	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
 	plX = clamp(plX,1,sizeX-2);
 	plY = clamp(plY,1,sizeY-2);
@@ -84,6 +92,12 @@ function player() {
 			bullets.push(new Bullet(plX,plY));
 			fire = 10;
 		}
+	}
+	if (coll(plX,plY)) {
+		dying = 30;
+		--lives;
+		if (lives == 0)
+			stage = 2;
 	}
 	if (kbd[27])
 		stage=0;
@@ -99,8 +113,14 @@ function draw() {
 		a.fillRect(i*step,0,step,mp1[i]*step);
 		a.fillRect(i*step,mp2[i]*step,step,hh);
 	}
-	a[fs] = '#0c0';
-	a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
+	if (dying > 0) {
+		a[fs] = '#f80';
+		for (var i=0; i < 10; ++i)
+			a.fillRect(plX*step+rndint(-20,20),plY*step+rndint(-20,20),3,3);		
+	} else {
+		a[fs] = '#0c0';
+		a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
+	}
 }
 
 function text(s,x,y,col) {
@@ -120,6 +140,7 @@ function startGame() {
 	fire = 2;
 	nextspawn = 10;
 	stage = 1;
+	score=0;
 }
 
 function gametick() {
@@ -129,6 +150,7 @@ function gametick() {
 		if (kbd[32])
 			startGame();
 	} else if (stage==1) {
+		++score;
 		updmap();
 		player();
 		draw();
@@ -142,6 +164,11 @@ function gametick() {
 		bullets.forEach(function(e){e.update();});
 		bullets = bullets.filter(function(e){return !e.dead;});
 		text("Lives: " + lives, 5, 5, "#080");
+	} else {
+		text ("You are dead! " + score,50,50,'#fff');
+		if (kbd[32]) {
+			stage = 0; kbd[32] = 0;
+		}
 	}
 }
 
