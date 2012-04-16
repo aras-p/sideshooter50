@@ -1,50 +1,40 @@
 <html><body><canvas id="c" width="600" height="300"></canvas>
 <script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
-var a = c.getContext('2d'); c.style.backgroundColor = '#444';
-fs = 'fillStyle';
-
+var a = c.getContext('2d'); c.style.backgroundColor = '#444'; fs = 'fillStyle';
+a.font='16px Arial'; a.textBaseline = 'top';
 function clamp(v,a,b) {return Math.max(Math.min(v,b),a);}
 function rnd(a,b) {return Math.random()*(b-a)+a;}
 function rndint(a,b) {return Math.floor(rnd(a,b));}
-function floor(v) {return Math.floor(v);}
-function abs(v) {return Math.abs(v);}
-
+function floor(v) {return Math.floor(v);} function abs(v) {return Math.abs(v);}
 var ww=600, hh=300, step=5; var sizeX=ww/step, sizeY=hh/step;
 var stage=0, kbd=[], enemies=[], bullets=[];
 var mp1, mp2, plX, plY, fire, dying, nextspawn, lives, score, spawnTime, gap;
-
 function nextmap(i) {
-	var v1=mp1[i] + rndint(-2,3); var v2=mp2[i] + rndint(-2,3);
-	while (v2-v1 > gap*2) { --v2; ++v1; } while (v2-v1 < gap) { ++v2; --v1; }
+	var v1=mp1[i]+rndint(-2,3); var v2=mp2[i]+rndint(-2,3);
+	while (v2-v1>gap*2) {--v2;++v1;} while (v2-v1<gap) {++v2;--v1;}
 	v1=clamp(v1,1,floor(sizeY/2)); v2=clamp(v2,floor(sizeY/2),sizeY-1);
 	++i; mp1[i] = v1; mp2[i] = v2;
 }
-
 function coll(x,y) {x=clamp(floor(x),0,sizeX-1);return mp1[x]>=y||mp2[x]-1<=y;}
-
 function Bullet(x,y) { var me=this; me.x=x;me.y=y; me.update=function() {
 	me.x+=2; if (me.x>sizeX||coll(me.x,me.y)) me.dead=true; if (me.dead) return;
 	a[fs] = '#080'; a.fillRect(me.x*step-3,me.y*step+1,step+6,step-2);
 } }
-
 function collbullet(x,y) { return bullets.some(function(e){
 	if (abs(x-e.x)<2.5 && abs(y-e.y)<2.5) {
 		e.dead=true; score+=10; return true;
 	}
 	return false;
 });}
-
 function collenemy(x,y) {
 	return enemies.some(function(e){return abs(x-e.x)<=1.5&&abs(y-e.y)<=1.5;});
 }
-
 function Enemy(x,y) { var me=this; me.x=x;me.y=y;
 	me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1); me.update=function() {
 		me.x+=me.dx;me.y+=me.dy;
 		if (me.x < 0 || coll(me.x,me.y) || collbullet(me.x,me.y)) me.dead=true;
 		a[fs] = '#e00'; a.fillRect(me.x*step,me.y*step,step,step);
 	} }
-
 function player() {
 	if (dying > 0) {
 		--dying; if (dying == 0) { plX=10; plY=floor((mp1[plX]+mp2[plX])/2); }
@@ -70,47 +60,26 @@ function draw() {
 		for (var i=0; i < 10; ++i)
 			a.fillRect(plX*step+rndint(-20,20),plY*step+rndint(-20,20),3,3);		
 	} else {
-		a[fs] = '#0c0';
-		a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
+		a[fs] = '#0c0'; a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
 	}
 }
-
-function text(s,x,y,col) {
-	a[fs] = col;
-	a.font='16px Arial';
-	a.textBaseline = 'top';
-	a.fillText (s,x,y);
-}
-
+function text(s,x,y,col) { a[fs]=col; a.fillText (s,x,y); }
 function startGame() {
-	mp1=[]; mp2=[];
-	mp1[0] = floor(sizeY/5);
-	mp2[0] = floor(sizeY*4/5);
-	for (var i=0;i<sizeX-1;++i)
-		nextmap(i);
-	enemies=[]; bullets=[];
-	plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
-	fire = 2;
-	dying = 0;
-	nextspawn = 10;
-	lives = 3;
-	score=0;
-	spawnTime = 100;
-	gap = 30;
-	stage = 1;
+	mp1=[]; mp2=[]; mp1[0] = floor(sizeY/5); mp2[0] = floor(sizeY*4/5);
+	for (var i=0;i<sizeX-1;++i) nextmap(i);
+	enemies=[]; bullets=[]; plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
+	fire=2;dying=0;nextspawn=10;lives=3;score=0; spawnTime=100;gap=30;stage=1;
 }
-
 function gametick() {
     a.clearRect(0,0,ww,hh);
-	if (stage!=1 ) {
+	if (stage!=1) {
 		text (stage==0?"Arrow keys & Space":("Dead! Score "+floor(score)),
 			50,50,'#fff');
 		if (kbd[32]) startGame();
-	} else if (stage==1) {
+	} else {
 		score += 0.1;
 		mp1=mp1.slice(1); mp2=mp2.slice(1); nextmap(sizeX-2);
-		player();
-		draw();
+		player();draw();
 		enemies.forEach(function(e){e.update();});
 		enemies = enemies.filter(function(e){return !e.dead;});
 		nextspawn = clamp(nextspawn-1,0,1000);
@@ -122,8 +91,7 @@ function gametick() {
 		}
 		bullets.forEach(function(e){e.update();});
 		bullets = bullets.filter(function(e){return !e.dead;});
-		text("Lives: " + lives, 5, 5, "#080");
-		text("Score: " + floor(score), ww/2, 5, "#080");
+		text("Lives: " + lives + " Score " + floor(score), 5, 5, "#080");
 	}
 }
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
