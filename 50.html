@@ -7,66 +7,66 @@ function flr(v) {return Math.floor(v);} function abs(v) {return Math.abs(v);}
 function rnd(a,b) {return Math.random()*(b-a)+a;}
 function rndi(a,b) {return flr(rnd(a,b));}
 var ww=600, hh=300, st=5; var sizeX=ww/st, sizeY=hh/st;
-var stage=0, kbd=[], enm=[], blt=[];
-var mp1, mp2, plX, plY, fire, die, nextspawn, lives, score, spawnTime, gap;
+var sg=0, kbd=[], enm=[], blt=[];
+var mp1, mp2, plX, plY, fire, die, ns, lv, sr, sp, gap;
 function nextmap(i) {
-	var v1=mp1[i]+rndi(-2,3); var v2=mp2[i]+rndi(-2,3);
-	while (v2-v1>gap*2) {--v2;++v1;} while (v2-v1<gap) {++v2;--v1;}
-	v1=clm(v1,1,flr(sizeY/2)); v2=clm(v2,flr(sizeY/2),sizeY-1);
-	++i; mp1[i] = v1; mp2[i] = v2; }
+ var v1=mp1[i]+rndi(-2,3); var v2=mp2[i]+rndi(-2,3);
+ while (v2-v1>gap*2) {--v2;++v1;} while (v2-v1<gap) {++v2;--v1;}
+ v1=clm(v1,1,flr(sizeY/2)); v2=clm(v2,flr(sizeY/2),sizeY-1);
+ ++i; mp1[i] = v1; mp2[i] = v2; }
 function coll(x,y) {x=clm(flr(x),0,sizeX-1);return mp1[x]>=y||mp2[x]-1<=y;}
 function Bullet(x,y) { var me=this; me.x=x;me.y=y; me.update=function() {
-	me.x+=2; if (me.x>sizeX||coll(me.x,me.y)) me.dead=true; if (me.dead) return;
-	a[fs] = '#080'; a.fillRect(me.x*st-3,me.y*st+1,st+6,st-2); }}
+ me.x+=2; if (me.x>sizeX||coll(me.x,me.y)) me.dead=true; if (me.dead) return;
+ a[fs] = '#080'; a.fillRect(me.x*st-3,me.y*st+1,st+6,st-2); }}
 function collbullet(x,y) { return blt.some(function(e){
-	if (abs(x-e.x)<2.5&&abs(y-e.y)<2.5) {e.dead=true;score+=10;return true;}
-	return false;});}
+ if (abs(x-e.x)<2.5&&abs(y-e.y)<2.5) {e.dead=true;sr+=10;return true;}
+ return false;});}
 function collenemy(x,y) {
-	return enm.some(function(e){return abs(x-e.x)<=1.5&&abs(y-e.y)<=1.5;});}
+ return enm.some(function(e){return abs(x-e.x)<=1.5&&abs(y-e.y)<=1.5;});}
 function Enemy(x,y) { var me=this; me.x=x;me.y=y;
-	me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1); me.update=function() {
-		me.x+=me.dx;me.y+=me.dy;
-		if (me.x < 0 || coll(me.x,me.y) || collbullet(me.x,me.y)) me.dead=true;
-		a[fs] = '#e00'; a.fillRect(me.x*st,me.y*st,st,st); } }
+ me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1); me.update=function() {
+ me.x+=me.dx;me.y+=me.dy;
+ if (me.x < 0 || coll(me.x,me.y) || collbullet(me.x,me.y)) me.dead=true;
+ a[fs] = '#e00'; a.fillRect(me.x*st,me.y*st,st,st); } }
 function player() { if (die>0) {
-		--die; if (die == 0) { plX=10; plY=flr((mp1[plX]+mp2[plX])/2); }
-		return; }
-	if(kbd[37])plX-=1.2;if(kbd[39])plX+=1.2;if(kbd[38])--plY;if(kbd[40])++plY;
-	plX = clm(plX,1,sizeX-2); plY = clm(plY,1,sizeY-2);
-	fire = clm(fire-1,0,1000);
-	if (kbd[32] && fire<=0) { blt.push(new Bullet(plX,plY)); fire=10; }
-	if (coll(plX,plY)||collenemy(plX,plY)){die=30;--lives;if(lives==0)stage=2;}
-	if (kbd[27]) stage=0; }
-function draw() { a[fs] = '#eee'; for (vari=0;i<sizeX;++i) {
-		a.fillRect(i*st,0,st,mp1[i]*st);a.fillRect(i*st,mp2[i]*st,st,hh); }
-	if (die>0) {a[fs]='#f80'; for (var i=0;i<10;++i)
-		a.fillRect(plX*st+rndi(-20,20),plY*st+rndi(-20,20),3,3);
-	} else { a[fs]='#0c0';a.fillRect(plX*st-2,plY*st-2,st+4,st+4); } }
+ --die; if (die == 0) { plX=10; plY=flr((mp1[plX]+mp2[plX])/2); }
+ return; }
+ if(kbd[37])plX-=1.2;if(kbd[39])plX+=1.2;if(kbd[38])--plY;if(kbd[40])++plY;
+ plX = clm(plX,1,sizeX-2); plY = clm(plY,1,sizeY-2);
+ fire = clm(fire-1,0,1000);
+ if (kbd[32] && fire<=0) { blt.push(new Bullet(plX,plY)); fire=10; }
+ if (coll(plX,plY)||collenemy(plX,plY)){die=30;--lv;if(lv==0)sg=2;}
+ if (kbd[27]) sg=0; }
+function draw() { a[fs] = '#eee'; for (var i=0;i<sizeX;++i) {
+ a.fillRect(i*st,0,st,mp1[i]*st);a.fillRect(i*st,mp2[i]*st,st,hh); }
+ if (die>0) {a[fs]='#f80'; for (var i=0;i<10;++i)
+  a.fillRect(plX*st+rndi(-20,20),plY*st+rndi(-20,20),3,3);
+ } else { a[fs]='#0c0';a.fillRect(plX*st-2,plY*st-2,st+4,st+4); } }
 function text(s,x,y,col) { a[fs]=col; a.fillText (s,x,y); }
-function startGame() {
-	mp1=[]; mp2=[]; mp1[0] = flr(sizeY/5); mp2[0] = flr(sizeY*4/5);
-	for (var i=0;i<sizeX-1;++i) nextmap(i);
-	enm=[]; blt=[]; plX=10; plY=flr((mp1[plX]+mp2[plX])/2);
-	fire=2;die=0;nextspawn=10;lives=3;score=0; spawnTime=100;gap=30;stage=1; }
-function gametick() { a.clearRect(0,0,ww,hh);
-	if (stage!=1) {
-		text (stage==0?"Arrow keys & Space":("Dead! Score "+flr(score)),
-			50,50,'#fff');
-		if (kbd[32]) startGame();
-	} else {
-		score += 0.1; mp1=mp1.slice(1); mp2=mp2.slice(1); nextmap(sizeX-2);
-		player();draw();
-		enm.forEach(function(e){e.update();});
-		enm = enm.filter(function(e){return !e.dead;});
-		nextspawn=clm(nextspawn-1,0,1000); spawnTime=clm(spawnTime-0.1,10,1000);
-		gap = clm(gap-0.01,4,1000);
-		if (nextspawn <= 0) {
-			enm.push(new Enemy(sizeX,flr((mp1[sizeX-1]+mp2[sizeX-1])/2)));
-			nextspawn = rndi(spawnTime*0.5,spawnTime*1.5);
-		}
-		blt.forEach(function(e){e.update();});
-		blt = blt.filter(function(e){return !e.dead;});
-		text("Lives: " + lives + " Score " + flr(score), 5, 5, "#080"); } }
+function gm() {
+ mp1=[]; mp2=[]; mp1[0] = flr(sizeY/5); mp2[0] = flr(sizeY*4/5);
+ for (var i=0;i<sizeX-1;++i) nextmap(i);
+ enm=[]; blt=[]; plX=10; plY=flr((mp1[plX]+mp2[plX])/2);
+ fire=2;die=0;ns=10;lv=3;sr=0; sp=100;gap=30;sg=1; }
+function gt() { a.clearRect(0,0,ww,hh);
+ if (sg!=1) {
+  text (sg==0?"Arrow keys & Space":("Dead! Score "+flr(sr)),
+   50,50,'#fff');
+  if (kbd[32]) gm();
+ } else {
+  sr += 0.1; mp1=mp1.slice(1); mp2=mp2.slice(1); nextmap(sizeX-2);
+  player();draw();
+  enm.forEach(function(e){e.update();});
+  enm = enm.filter(function(e){return !e.dead;});
+  ns=clm(ns-1,0,1000); sp=clm(sp-0.1,10,1000);
+  gap = clm(gap-0.01,4,1000);
+  if (ns <= 0) {
+   enm.push(new Enemy(sizeX,flr((mp1[sizeX-1]+mp2[sizeX-1])/2)));
+   ns = rndi(sp*0.5,sp*1.5);
+  }
+  blt.forEach(function(e){e.update();});
+  blt = blt.filter(function(e){return !e.dead;});
+  text("Lives: " + lv + " Score " + flr(sr), 5, 5, "#080"); } }
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
-setInterval(function(){gametick();},1000/30);
+setInterval(function(){gt();},1000/30);
 </script></body></html>
