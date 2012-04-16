@@ -14,9 +14,9 @@ function abs(v) {return Math.abs(v);}
 var stage=0;
 var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
-var plX=10;
-var plY=floor(sizeY/2);
+var plX, plY;
 var fire=0;
+var nextspawn=10;
 var lives=5;
 
 function nextmap(i) {
@@ -28,10 +28,6 @@ function nextmap(i) {
 	mp1[i+1] = v1;
 	mp2[i+1] = v2;
 }
-mp1[0] = floor(sizeY/5);
-mp2[0] = floor(sizeY*4/5);
-for (var i=0;i<sizeX-1;++i)
-	nextmap(i);
 
 var kbd = [];
 var enemies = [];
@@ -77,11 +73,6 @@ function Enemy(x,y) {
 	}
 }
 
-function spawn() {
-	enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
-	setTimeout(function(){spawn();}, rndint(500,1000));
-}
-
 
 function player() {
 	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
@@ -119,20 +110,35 @@ function text(s,x,y,col) {
 	a.fillText (s,x,y);
 }
 
-spawn();
+function startGame() {
+	mp1[0] = floor(sizeY/5);
+	mp2[0] = floor(sizeY*4/5);
+	for (var i=0;i<sizeX-1;++i)
+		nextmap(i);
+	enemies=[]; bullets=[];
+	plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
+	fire = 2;
+	nextspawn = 10;
+	stage = 1;
+}
 
 function gametick() {
     a.clearRect(0,0,ww,hh);
 	if (stage==0) {
 		text ("Arrow keys & Space. Press Space now.",50,50,'#fff');
 		if (kbd[32])
-			stage = 1;
+			startGame();
 	} else if (stage==1) {
 		updmap();
 		player();
 		draw();
 		enemies.forEach(function(e){e.update();});
 		enemies = enemies.filter(function(e){return !e.dead;});
+		nextspawn = clamp(nextspawn-1,0,1000);
+		if (nextspawn <= 0) {
+			enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
+			nextspawn = rndint(30,100);
+		}
 		bullets.forEach(function(e){e.update();});
 		bullets = bullets.filter(function(e){return !e.dead;});
 		text("Lives: " + lives, 5, 5, "#080");
