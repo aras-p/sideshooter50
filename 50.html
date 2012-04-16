@@ -9,6 +9,7 @@ function clamp(v,a,b) {return Math.max(Math.min(v,b),a);}
 function rnd(a,b) {return Math.random()*(b-a)+a;}
 function rndint(a,b) {return Math.floor(rnd(a,b));}
 function floor(v) {return Math.floor(v);}
+function abs(v) {return Math.abs(v);}
 
 var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
@@ -31,6 +32,8 @@ for (var i=0;i<sizeX-1;++i)
 	nextmap(i);
 
 var kbd = [];
+var enemies = [];
+var bullets = [];
 
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
 
@@ -49,23 +52,33 @@ function coll(x,y) {
 	x=clamp(floor(x),0,sizeX-1);
 	return mp1[x] >= y || mp2[x]-1 <= y;
 }
+function collbullet(x,y) {
+	x=floor(x);
+	y=floor(y);
+	return bullets.some(function(e){
+		if (abs(x-e.x)<2.5 && abs(y-e.y)<2.5) {
+			e.dead=true;
+			return true;
+		} else {
+			return false;
+		}
+	});
+}
 
 function Enemy(x,y) {
 	var me=this; me.x=x;me.y=y;me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1);
 	me.update=function() {
 		me.x+=me.dx;me.y+=me.dy;
-		if (me.x < 0 || coll(me.x,me.y)) me.dead=true;
+		if (me.x < 0 || coll(me.x,me.y) || collbullet(me.x,me.y)) me.dead=true;
 		a[fs] = '#e00';
 		a.fillRect(me.x*step,me.y*step,step,step);
 	}
 }
 
-var enemies = [];
 function spawn() {
 	enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
 	setTimeout(function(){spawn();}, rndint(500,1000));
 }
-var bullets = [];
 
 
 function player() {
