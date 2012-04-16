@@ -1,0 +1,187 @@
+<html><body><canvas id="c" width="600" height="300"></canvas>
+<script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
+var a = c.getContext('2d');
+c.style.backgroundColor = '#444';
+fps = 30;
+fs = 'fillStyle';
+
+function clamp(v,a,b) {return Math.max(Math.min(v,b),a);}
+function rnd(a,b) {return Math.random()*(b-a)+a;}
+function rndint(a,b) {return Math.floor(rnd(a,b));}
+function floor(v) {return Math.floor(v);}
+function abs(v) {return Math.abs(v);}
+
+var stage=0;
+var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
+var mp1=[]; var mp2=[];
+var plX, plY;
+var fire=0;
+var dying=0;
+var nextspawn=10;
+var lives;
+var score=0;
+var spawnTime=100;
+var gap=30;
+
+function nextmap(i) {
+	var v1=mp1[i] + rndint(-2,3);
+	var v2=mp2[i] + rndint(-2,3);
+	while (v2-v1 > gap*2) { --v2; ++v1; }
+	while (v2-v1 < gap) { ++v2; --v1; }
+	v1=clamp(v1,1,floor(sizeY/2));
+	v2=clamp(v2,floor(sizeY/2),sizeY-1);
+	++i; mp1[i] = v1; mp2[i] = v2;
+}
+
+var kbd = [];
+var enemies = [];
+var bullets = [];
+
+document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
+
+function Bullet(x,y) {
+	var me=this; me.x=x;me.y=y;
+	me.update=function() {
+		me.x+=2;
+		if (me.x > sizeX || coll(me.x,me.y)) me.dead=true;
+		if (me.dead) return;
+		a[fs] = '#080';
+		a.fillRect(me.x*step-3,me.y*step+1,step+6,step-2);
+	}
+}
+
+function coll(x,y) {
+	x=clamp(floor(x),0,sizeX-1);
+	return mp1[x] >= y || mp2[x]-1 <= y;
+}
+function collbullet(x,y) {
+	return bullets.some(function(e){
+		if (abs(x-e.x)<2.5 && abs(y-e.y)<2.5) {
+			e.dead=true;
+			score+=10;
+			return true;
+		} else {
+			return false;
+		}
+	});
+}
+function collenemy(x,y) {
+	return enemies.some(function(e){return abs(x-e.x)<=1.5 && abs(y-e.y)<=1.5;});
+}
+
+
+function Enemy(x,y) {
+	var me=this; me.x=x;me.y=y;me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1);
+	me.update=function() {
+		me.x+=me.dx;me.y+=me.dy;
+		if (me.x < 0 || coll(me.x,me.y) || collbullet(me.x,me.y)) me.dead=true;
+		a[fs] = '#e00';
+		a.fillRect(me.x*step,me.y*step,step,step);
+	}
+}
+
+
+function player() {
+	if (dying > 0) {
+		--dying;
+		if (dying == 0) {
+			plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
+		}
+		return;
+	}
+	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
+	plX = clamp(plX,1,sizeX-2);
+	plY = clamp(plY,1,sizeY-2);
+	fire = clamp(fire-1,0,1000);
+	if (kbd[32]) {
+		if (fire<=0) {
+			bullets.push(new Bullet(plX,plY));
+			fire = 10;
+		}
+	}
+	if (coll(plX,plY) || collenemy(plX,plY)) {
+		dying = 30;
+		--lives;
+		if (lives == 0)
+			stage = 2;
+	}
+	if (kbd[27])
+		stage=0;
+}
+function updmap() {
+	mp1=mp1.slice(1);
+	mp2=mp2.slice(1);
+	nextmap(sizeX-2);
+}
+function draw() {
+	a[fs] = '#eee';
+	for (var i=0;i<sizeX;++i) {
+		a.fillRect(i*step,0,step,mp1[i]*step);
+		a.fillRect(i*step,mp2[i]*step,step,hh);
+	}
+	if (dying > 0) {
+		a[fs] = '#f80';
+		for (var i=0; i < 10; ++i)
+			a.fillRect(plX*step+rndint(-20,20),plY*step+rndint(-20,20),3,3);		
+	} else {
+		a[fs] = '#0c0';
+		a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
+	}
+}
+
+function text(s,x,y,col) {
+	a[fs] = col;
+	a.font='16px Arial';
+	a.textBaseline = 'top';
+	a.fillText (s,x,y);
+}
+
+function startGame() {
+	mp1[0] = floor(sizeY/5);
+	mp2[0] = floor(sizeY*4/5);
+	for (var i=0;i<sizeX-1;++i)
+		nextmap(i);
+	enemies=[]; bullets=[];
+	plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
+	fire = 2;
+	lives = 3;
+	dying = 0;
+	nextspawn = 10;
+	stage = 1;
+	score=0;
+}
+
+function gametick() {
+    a.clearRect(0,0,ww,hh);
+	if (stage==0) {
+		text ("Arrow keys & Space. Press Space now.",50,50,'#fff');
+		if (kbd[32])
+			startGame();
+	} else if (stage==1) {
+		score += 0.1;
+		updmap();
+		player();
+		draw();
+		enemies.forEach(function(e){e.update();});
+		enemies = enemies.filter(function(e){return !e.dead;});
+		nextspawn = clamp(nextspawn-1,0,1000);
+		spawnTime = clamp(spawnTime-0.1,10,1000);
+		gap = clamp(gap-0.01,4,1000);
+		if (nextspawn <= 0) {
+			enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
+			nextspawn = rndint(spawnTime*0.5,spawnTime*1.5);
+		}
+		bullets.forEach(function(e){e.update();});
+		bullets = bullets.filter(function(e){return !e.dead;});
+		text("Lives: " + lives, 5, 5, "#080");
+		text("Score: " + floor(score), ww/2, 5, "#080");
+	} else {
+		text ("You are dead! Score " + floor(score) + ". Press Space.",50,50,'#fff');
+		if (kbd[32])
+			startGame();
+	}
+}
+
+setInterval(function(){gametick();},1000/fps);
+</script>
+</body></html>
