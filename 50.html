@@ -32,6 +32,24 @@ var kbd = [];
 
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
 
+function Enemy(x,y) {
+	var me=this; me.x=x;me.y=y;
+	me.update=function() {
+		--me.x;
+		if (me.x < 10)
+			me.dead=true;
+		a[fs] = '#e00';
+		a.fillRect(me.x*step,me.y*step,step,step);
+	}
+}
+
+var enemies = [];
+function spawn() {
+	enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
+	setTimeout(function(){spawn();}, rndint(500,1000));
+}
+
+
 function player() {
 	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
 	plX = clamp(plX,1,sizeX-2);
@@ -46,18 +64,21 @@ function draw() {
     a.clearRect(0,0,ww,hh);
 	a[fs] = '#eee';
 	for (var i=0;i<sizeX;++i) {
-		var j=i;
-		a.fillRect(i*step,0,step,mp1[j]*step);
-		a.fillRect(i*step,mp2[j]*step,step,hh);
+		a.fillRect(i*step,0,step,mp1[i]*step);
+		a.fillRect(i*step,mp2[i]*step,step,hh);
 	}
 	a[fs] = '#0c0';
 	a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
 }
 
+spawn();
+
 setInterval(function(){
 	updmap();
 	player();
 	draw();
+	enemies.forEach(function(e){e.update();});
+	enemies = enemies.filter(function(e){return !e.dead;});
 },1000/fps);
 </script>
 </body></html>
