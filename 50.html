@@ -1,6 +1,6 @@
 <html><body><canvas id="c" width="600" height="300"></canvas>
 <script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
-var a = c.getContext('2d'); document.body.clientWidth; // fix bug in webkit
+var a = c.getContext('2d');
 c.style.backgroundColor = '#444';
 fps = 30;
 fs = 'fillStyle';
@@ -18,13 +18,16 @@ var plX, plY;
 var fire=0;
 var dying=0;
 var nextspawn=10;
-var lives=3;
+var lives;
 var score=0;
+var spawnTime=100;
+var gap=30;
 
 function nextmap(i) {
 	var v1=mp1[i] + rndint(-2,3);
 	var v2=mp2[i] + rndint(-2,3);
-	while (v2-v1 < 12) { ++v2; --v1; }
+	while (v2-v1 > gap*2) { --v2; ++v1; }
+	while (v2-v1 < gap) { ++v2; --v1; }
 	v1=clamp(v1,1,floor(sizeY/2));
 	v2=clamp(v2,floor(sizeY/2),sizeY-1);
 	++i; mp1[i] = v1; mp2[i] = v2;
@@ -57,6 +60,7 @@ function collbullet(x,y) {
 	return bullets.some(function(e){
 		if (abs(x-e.x)<2.5 && abs(y-e.y)<2.5) {
 			e.dead=true;
+			score+=10;
 			return true;
 		} else {
 			return false;
@@ -138,6 +142,8 @@ function startGame() {
 	enemies=[]; bullets=[];
 	plX=10; plY=floor((mp1[plX]+mp2[plX])/2);
 	fire = 2;
+	lives = 3;
+	dying = 0;
 	nextspawn = 10;
 	stage = 1;
 	score=0;
@@ -150,25 +156,27 @@ function gametick() {
 		if (kbd[32])
 			startGame();
 	} else if (stage==1) {
-		++score;
+		score += 0.1;
 		updmap();
 		player();
 		draw();
 		enemies.forEach(function(e){e.update();});
 		enemies = enemies.filter(function(e){return !e.dead;});
 		nextspawn = clamp(nextspawn-1,0,1000);
+		spawnTime = clamp(spawnTime-0.1,10,1000);
+		gap = clamp(gap-0.01,4,1000);
 		if (nextspawn <= 0) {
 			enemies.push(new Enemy(sizeX,floor((mp1[sizeX-1]+mp2[sizeX-1])/2)));
-			nextspawn = rndint(30,100);
+			nextspawn = rndint(spawnTime*0.5,spawnTime*1.5);
 		}
 		bullets.forEach(function(e){e.update();});
 		bullets = bullets.filter(function(e){return !e.dead;});
 		text("Lives: " + lives, 5, 5, "#080");
+		text("Score: " + floor(score), ww/2, 5, "#080");
 	} else {
-		text ("You are dead! " + score,50,50,'#fff');
-		if (kbd[32]) {
-			stage = 0; kbd[32] = 0;
-		}
+		text ("You are dead! Score " + floor(score) + ". Press Space.",50,50,'#fff');
+		if (kbd[32])
+			startGame();
 	}
 }
 
