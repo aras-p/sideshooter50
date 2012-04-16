@@ -55,8 +55,6 @@ function coll(x,y) {
 	return mp1[x] >= y || mp2[x]-1 <= y;
 }
 function collbullet(x,y) {
-	x=floor(x);
-	y=floor(y);
 	return bullets.some(function(e){
 		if (abs(x-e.x)<2.5 && abs(y-e.y)<2.5) {
 			e.dead=true;
@@ -67,6 +65,10 @@ function collbullet(x,y) {
 		}
 	});
 }
+function collenemy(x,y) {
+	return enemies.some(function(e){return abs(x-e.x)<=1.5 && abs(y-e.y)<=1.5;});
+}
+
 
 function Enemy(x,y) {
 	var me=this; me.x=x;me.y=y;me.dx=rnd(-1.2,-0.8);me.dy=rnd(-0.1,0.1);
@@ -97,7 +99,7 @@ function player() {
 			fire = 10;
 		}
 	}
-	if (coll(plX,plY)) {
+	if (coll(plX,plY) || collenemy(plX,plY)) {
 		dying = 30;
 		--lives;
 		if (lives == 0)
