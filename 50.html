@@ -2,15 +2,14 @@
 <script>var b=document.body; var c=document.getElementsByTagName('canvas')[0];
 var a = c.getContext('2d'); document.body.clientWidth; // fix bug in webkit
 c.style.backgroundColor = '#444';
-fps = 10;
-
+fps = 30;
 fs = 'fillStyle';
 
 function clamp(v,a,b) {return Math.max(Math.min(v,b),a);}
 function rndint(a,b) {return Math.floor(Math.random()*(b-a)+a);}
 function floor(v) {return Math.floor(v);}
 
-var ww=600; var hh=300; var step=10; var sizeX=ww/step; var sizeY=hh/step;
+var ww=600; var hh=300; var step=5; var sizeX=ww/step; var sizeY=hh/step;
 var mp1=[]; var mp2=[];
 var plX=10;
 var plY=floor(sizeY/2);
@@ -18,7 +17,7 @@ var plY=floor(sizeY/2);
 function nextmap(i) {
 	var v1=mp1[i] + rndint(-2,3);
 	var v2=mp2[i] + rndint(-2,3);
-	while (v2-v1 < 8) { ++v2; --v1; }
+	while (v2-v1 < 12) { ++v2; --v1; }
 	v1=clamp(v1,1,floor(sizeY/2));
 	v2=clamp(v2,floor(sizeY/2),sizeY-1);
 	mp1[i+1] = v1;
@@ -33,29 +32,32 @@ var kbd = [];
 
 document.onkeydown=document.onkeyup=function(a){kbd[a.keyCode]=a.type[5]&&1}
 
-setInterval(function(){
-    a.clearRect(0,0,ww,hh);
-	a[fs] = '#eee';
+function player() {
+	if (kbd[37]) plX-=1.2; if (kbd[39]) plX+=1.2; if (kbd[38]) --plY; if (kbd[40]) ++plY;
+	plX = clamp(plX,1,sizeX-2);
+	plY = clamp(plY,1,sizeY-2);
+}
+function updmap() {
 	mp1=mp1.slice(1);
 	mp2=mp2.slice(1);
 	nextmap(sizeX-2);
-	if (kbd[37]) --plX;
-	if (kbd[39]) ++plX;
-	if (kbd[38]) --plY;
-	if (kbd[40]) ++plY;
-
-	for (var i=0;i<sizeX;++i)
-	{
+}
+function draw() {
+    a.clearRect(0,0,ww,hh);
+	a[fs] = '#eee';
+	for (var i=0;i<sizeX;++i) {
 		var j=i;
 		a.fillRect(i*step,0,step,mp1[j]*step);
 		a.fillRect(i*step,mp2[j]*step,step,hh);
 	}
+	a[fs] = '#0c0';
+	a.fillRect(plX*step-2,plY*step-2,step+4,step+4);
+}
 
-	a[fs] = '#c00';
-	a.fillRect(plX*step,plY*step,step,step);
-
+setInterval(function(){
+	updmap();
+	player();
+	draw();
 },1000/fps);
 </script>
-
-</body>
-</html>
+</body></html>
